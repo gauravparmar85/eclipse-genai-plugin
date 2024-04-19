@@ -2,6 +2,8 @@ package com.github.gradusnikov.eclipse.assistai.prompt;
 
 public enum Prompts
 {
+	CODEREVIEW("codereview-prompt.txt", "Code Review"),
+	EXPLAINCODE("explaincode-prompt.txt", "Explain Code"),
     SYSTEM("system-prompt.txt", "System"),
     DISCUSS("discuss-prompt.txt", "Discuss"),
     DOCUMENT("document-prompt.txt", "Document"),

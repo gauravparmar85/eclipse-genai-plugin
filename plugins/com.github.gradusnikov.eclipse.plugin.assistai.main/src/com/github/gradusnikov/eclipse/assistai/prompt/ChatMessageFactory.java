@@ -49,6 +49,8 @@ public class ChatMessageFactory
                 case DOCUMENT   -> javaDocPromptSupplier( context );
                 case TEST_CASE  -> unitTestSupplier( context );
                 case REFACTOR   -> refactorPromptSupplier( context );
+                case CODEREVIEW   -> codereviewPromptSupplier( context );
+                case EXPLAINCODE   -> explaincodePromptSupplier(context);
                 case DISCUSS    -> discussCodePromptSupplier( context );
                 case FIX_ERRORS -> fixErrorsPromptSupplier( context );
                 default ->
@@ -75,6 +77,17 @@ public class ChatMessageFactory
                 "${lang}", context.lang()
                 );
     }
+    
+    private Supplier<String> explaincodePromptSupplier( Context context )
+    {
+        return () -> promptLoader.updatePromptText( preferenceStore.getString( Prompts.EXPLAINCODE.preferenceName() ), 
+                "${documentText}", context.fileContents(),
+                "${selectedText}", context.selectedContent(),
+                "${fileName}", context.fileName(),
+                "${lang}", context.lang()
+                );
+    } 
+    
 
     private Supplier<String> javaDocPromptSupplier( Context context )
     {
@@ -94,6 +107,17 @@ public class ChatMessageFactory
                 "${lang}", context.lang()
                 );
     }
+    
+    private Supplier<String> codereviewPromptSupplier( Context context )
+    {
+        return () -> promptLoader.updatePromptText( preferenceStore.getString( Prompts.CODEREVIEW.preferenceName() ), 
+                "${documentText}", context.fileContents(),
+                "${selectedText}", context.selectedContent(),
+                "${fileName}", context.fileName(),
+                "${lang}", context.lang()
+                );
+    }
+    
     private Supplier<String> unitTestSupplier( Context context )
     {
         return () -> promptLoader.updatePromptText( preferenceStore.getString( Prompts.TEST_CASE.preferenceName() ), 

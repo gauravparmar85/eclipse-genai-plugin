@@ -16,30 +16,30 @@ public class OpenAIClientConfiguration
     public String getApiBase()
     {
         IPreferenceStore prefernceStore = Activator.getDefault().getPreferenceStore();
-        return prefernceStore.getString(PreferenceConstants.OPENAI_API_BASE);
+        return prefernceStore.getString(PreferenceConstants.GENAI_API_BASE);
     }
     
     public String getApiEndPoint()
     {
         IPreferenceStore prefernceStore = Activator.getDefault().getPreferenceStore();
-        return prefernceStore.getString(PreferenceConstants.OPENAI_API_END_POINT);
+        return prefernceStore.getString(PreferenceConstants.GENAI_API_END_POINT);
     }
 
     public String getApiKey()
     {
         IPreferenceStore prefernceStore = Activator.getDefault().getPreferenceStore();
-        return prefernceStore.getString(PreferenceConstants.OPENAI_API_KEY);
+        return prefernceStore.getString(PreferenceConstants.GENAI_API_KEY);
     }
 
     public String getChatModelName()
     {
         IPreferenceStore prefernceStore = Activator.getDefault().getPreferenceStore();
-        return prefernceStore.getString(PreferenceConstants.OPENAI_CHAT_MODEL_NAME);
+        return prefernceStore.getString(PreferenceConstants.GENAI_CHAT_MODEL_NAME);
     }
     public String getVisionModelName()
     {
         IPreferenceStore prefernceStore = Activator.getDefault().getPreferenceStore();
-        return prefernceStore.getString(PreferenceConstants.OPENAI_VISION_MODEL_NAME);
+        return prefernceStore.getString(PreferenceConstants.GENAI_VISION_MODEL_NAME);
     }
 
     public String getApiUrl()

@@ -3,11 +3,16 @@ package com.github.gradusnikov.eclipse.assistai.services;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,7 +23,14 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.e4.core.di.annotations.Creatable;
@@ -79,6 +91,107 @@ public class OpenAIStreamJavaHttpClient
     public synchronized void subscribe(Flow.Subscriber<Incoming> subscriber)
     {
         publisher.subscribe(subscriber);
+    }
+    
+    /**
+     * Returns the JSON request body as a String for the given prompt.
+     * @param prompt the user input to be included in the request body
+     * @return the JSON request body as a String
+     */
+    private String getRequestBody_dice(Conversation prompt)
+    {
+        try
+        {
+            var objectMapper = new ObjectMapper();
+            var requestBody = new LinkedHashMap<String, Object>();
+            var messages = new ArrayList<Map<String, Object>>();
+    
+            var systemMessage = new LinkedHashMap<String, Object> ();
+            systemMessage.put("best_of", 1);
+            systemMessage.put( "decoder_input_details", false);
+            systemMessage.put("details", false);
+            systemMessage.put("do_sample", true);
+            systemMessage.put("max_new_tokens", 2048);
+            systemMessage.put("repetition_penalty", 1.2);
+            systemMessage.put("return_full_text", false);
+            systemMessage.put("seed", 42);
+            var stopText=new ArrayList<Object>();
+            stopText.add("<|endoftext|>");
+            systemMessage.put( "stop", stopText);
+            systemMessage.put("temperature", 0.2);
+            systemMessage.put("top_k", 50);
+            systemMessage.put( "top_p", 0.95);
+            systemMessage.put( "truncate", 1023);
+            systemMessage.put( "typical_p", 0.95);
+            systemMessage.put("watermark", false);
+            
+            
+            
+           // systemMessage.put("content", promptLoader.createPromptText("system-prompt.txt") );
+            messages.add(systemMessage);
+            
+
+            
+            requestBody.put("parameters", systemMessage);
+           
+            
+            // TBD
+            
+            for ( ChatMessage message : prompt.messages() )
+            {
+              //  var userMessage = new LinkedHashMap<String,Object>();
+             //   userMessage.put("role", message.getRole());
+
+                List<ImageData> images = message.getAttachments()
+                        .stream()
+                        .map( Attachment::getImageData )
+                        .filter( Objects::nonNull )
+                        .collect( Collectors.toList() );
+
+                List<String> textParts = message.getAttachments()
+                        .stream()
+                        .map( Attachment::toChatMessageContent )
+                        .filter( Objects::nonNull )
+                        .collect( Collectors.toList() );
+
+                String textContent = "[INST]"+String.join( "\n", textParts ) + "\n\n" + message.getContent()+"[/INST]";
+
+                if (images.isEmpty())
+                {
+                    if (Objects.nonNull( textContent ))
+                    {
+                    	requestBody.put("inputs", textContent);
+                    	break;
+                   //     userMessage.put("content", textContent);
+                    }
+                    if ( Objects.nonNull( message.getName() ) )
+                    {
+                      //  userMessage.put( "name", message.getName() );
+                    }
+                    if ( Objects.nonNull( message.getFunctionCall() ) )
+                    {
+                        var functionCall = new LinkedHashMap<String, String> ();
+                        functionCall.put( "name", message.getFunctionCall().name() );
+                        functionCall.put( "arguments", objectMapper.writeValueAsString(  message.getFunctionCall().arguments() ) );
+                        
+                      //  userMessage.put( "function_call", functionCall );
+                    }
+                }
+               // messages.add(userMessage);
+            }
+            //requestBody.put("inputs", messages);
+            
+            //TBD
+            
+            
+            String jsonString;
+            jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestBody);
+            return jsonString;
+        }
+        catch (JsonProcessingException e)
+        {
+            throw new RuntimeException( e );
+        }
     }
     /**
      * Returns the JSON request body as a String for the given prompt.
@@ -195,21 +308,62 @@ public class OpenAIStreamJavaHttpClient
     public Runnable run( Conversation prompt ) 
     {
     	return () ->  {
+    		var trustManager = new X509ExtendedTrustManager() {
+    		    @Override
+    		    public X509Certificate[] getAcceptedIssuers() {
+    		        return new X509Certificate[]{};
+    		    }
+
+    		    @Override
+    		    public void checkClientTrusted(X509Certificate[] chain, String authType) {
+    		    }
+
+    		    @Override
+    		    public void checkServerTrusted(X509Certificate[] chain, String authType) {
+    		    }
+
+    		    @Override
+    		    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
+    		    }
+
+    		    @Override
+    		    public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
+    		    }
+
+    		    @Override
+    		    public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+    		    }
+
+    		    @Override
+    		    public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+    		    }
+    		};
+    		SSLContext sslContext = null;
+			try {
+				sslContext = SSLContext.getInstance("TLS");
+				sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
+			} catch (NoSuchAlgorithmException | KeyManagementException e) {
+				e.printStackTrace();
+			}
+    		
     		HttpClient client = HttpClient.newBuilder()
     		                              .connectTimeout( Duration.ofSeconds(configuration.getConnectionTimoutSeconds()) )
+    		                              .sslContext(sslContext)
     		                              .build();
-    		
-    		String requestBody = getRequestBody(prompt);
+    		String requestBody = getRequestBody_dice(prompt);
             HttpRequest request = HttpRequest.newBuilder().uri(URI.create(configuration.getApiUrl()))
-                    .timeout( Duration.ofSeconds( configuration.getRequestTimoutSeconds() ) )
+                    .timeout( Duration.ofSeconds(60) )
                     .version(HttpClient.Version.HTTP_1_1)
-    				.header("Authorization", "Bearer " + configuration.getApiKey())
-    				.header("Accept", "text/event-stream")
+    				//.header("Authorization", "Bearer " + configuration.getApiKey())
+    				//.header("Accept", "text/event-stream")
+    				.header("Accept",  "application/json")
     				.header("Content-Type", "application/json")
+    				.header("api_key",  configuration.getApiKey())
+    				.header("model_name",  configuration.getChatModelName())
     				.POST(HttpRequest.BodyPublishers.ofString(requestBody))
     				.build();
     		
-    		logger.info("Sending request to ChatGPT.\n\n" + requestBody);
+    		logger.info("Sending request to GenAI.\n\n" + requestBody);
     		
     		try
     		{
@@ -226,40 +380,19 @@ public class OpenAIStreamJavaHttpClient
     				String line;
     				while ((line = reader.readLine()) != null && !isCancelled.get() )
     				{
-    					if (line.startsWith("data:"))
-    					{
-    					    var data = line.substring(5).trim();
-    						if ("[DONE]".equals(data))
-    						{
-    							break;
-    						} 
-    						else
-    						{
-    						    var mapper = new ObjectMapper();
-    						    var choice = mapper.readTree(data).get("choices").get(0);
-    						    var node =  choice.get("delta");
-    							if (node.has("content") )
-    							{
-    							    var content = node.get("content").asText();
-    							    if ( !"null".equals( content ) )
-    							    {
-    							        publisher.submit(new Incoming(Incoming.Type.CONTENT, content));
-    							    }
-    							}
-    							if ( node.has( "function_call" ) )
-    							{
-    							    var functionNode = node.get( "function_call" );
-    							    if ( functionNode.has( "name" ) )
-    							    {
-    							        publisher.submit( new Incoming(Incoming.Type.FUNCTION_CALL, String.format( "\"function_call\" : { \n \"name\": \"%s\",\n \"arguments\" :", functionNode.get("name").asText() ) ) );
-    							    }
-    							    if ( functionNode.has( "arguments" ) )
-    							    {
-    							        publisher.submit( new Incoming(Incoming.Type.FUNCTION_CALL, node.get("function_call").get("arguments").asText()) );
-    							    }
-    							}
-    						}
-    					}
+    					
+    			     // Define the regular expression pattern
+    			        Pattern pattern = Pattern.compile("\"generated_text\":\"(.*?)\"");
+
+    			        // Create a Matcher object
+    			        Matcher matcher = pattern.matcher(line);
+
+						if (matcher.find()) {
+							String value = matcher.group(1);
+							System.out.print(value);
+							String stringWithNewline = value.replace("\\n", "\n");
+							publisher.submit(new Incoming(Incoming.Type.CONTENT, stringWithNewline));
+						}
     				}
     			}
     			if ( isCancelled.get() )

@@ -30,7 +30,7 @@ public class SendConversationJob extends Job
     
     public SendConversationJob()
     {
-        super( AssistAIJobConstants.JOB_PREFIX + " ask ChatGPT for help");
+        super( AssistAIJobConstants.JOB_PREFIX + " ask GenAI for help");
         
     }
     @Override

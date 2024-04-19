@@ -1,0 +1,26 @@
+In the context of the source code [class], please provide an explanation for the provided code snippet [snippet] written in [language].
+
+Explain the purpose and functionality of the code.
+Describe any important variables, methods, or classes used.
+Highlight any key algorithms or logic implemented.
+Discuss any design choices or considerations.
+Clarify any complex or ambiguous parts of the code.
+Provide examples or use cases to illustrate the code's behavior.
+
+Return your detailed explanation in the following markdown format:
+
+<code snippet>
+
+<your explanation separated by \\n for new lines>
+
+[snippet]=
+```${lang}
+${selectedText}
+```
+
+[language]=${lang}
+
+[class]=
+```${lang}
+${documentText}
+```

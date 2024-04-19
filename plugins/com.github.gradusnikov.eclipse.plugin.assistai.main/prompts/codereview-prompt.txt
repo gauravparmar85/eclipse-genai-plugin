@@ -1,7 +1,33 @@
-Perform a code review of the source code [class].
+In the context of the source code [class], please conduct a thorough code review of the provided code snippet [snippet] written in [language].
 
+Evaluate the code for adherence to best practices and standards, readability, efficiency, and potential bugs or improvements.
+
+Provide feedback on the design and implementation, highlighting areas for optimization or refactoring, if necessary.
+
+Return your findings and suggestions in the following markdown format:
+
+Don't print the content of the whole class. Just the reviewed snippet code, and the referenced methods.
+
+Return the response in the following markdown format:
+
+```<code snippet>
+<your review feedback>
+```
+Ensure each comment within your review feedback appears on a new line for better readability and clarity.
+
+Let's work this out in a step by step way to be sure we have the right answer.
+
+[snippet]=
+```${lang}
+${selectedText}
+```
+
+[language]=${lang}
 
 [class]=
 ```${lang}
-${content}
+${documentText}
 ```
+
+
+

@@ -22,7 +22,7 @@ public class OpenAIPreferencePage extends FieldEditorPreferencePage implements I
     {
         super( GRID );
         setPreferenceStore( Activator.getDefault().getPreferenceStore() );
-        setDescription( "OpenAI API settings" );
+        setDescription( "GenAI API settings" );
     }
 
     /**
@@ -32,11 +32,11 @@ public class OpenAIPreferencePage extends FieldEditorPreferencePage implements I
      */
     public void createFieldEditors()
     {
-        addField(new StringFieldEditor(PreferenceConstants.OPENAI_API_BASE, "&Open AI API Base:", getFieldEditorParent()));
-        addField(new StringFieldEditor(PreferenceConstants.OPENAI_API_END_POINT, "&Open AI API End Point:", getFieldEditorParent()));
-        addField( new StringFieldEditor( PreferenceConstants.OPENAI_API_KEY, "&Open AI API Key:", getFieldEditorParent() ) );
-        addField( new StringFieldEditor( PreferenceConstants.OPENAI_CHAT_MODEL_NAME, "&Chat Model Name", getFieldEditorParent() ) );
-        addField( new StringFieldEditor( PreferenceConstants.OPENAI_VISION_MODEL_NAME, "&Vision Model Name", getFieldEditorParent() ) );
+        addField(new StringFieldEditor(PreferenceConstants.GENAI_API_BASE, "&Gen AI API Base:", getFieldEditorParent()));
+        addField(new StringFieldEditor(PreferenceConstants.GENAI_API_END_POINT, "&Gen AI API End Point:", getFieldEditorParent()));
+        addField( new StringFieldEditor( PreferenceConstants.GENAI_API_KEY, "&Gen AI API Key:", getFieldEditorParent() ) );
+        addField( new StringFieldEditor( PreferenceConstants.GENAI_CHAT_MODEL_NAME, "&Chat Model Name", getFieldEditorParent() ) );
+        addField( new StringFieldEditor( PreferenceConstants.GENAI_VISION_MODEL_NAME, "&Vision Model Name", getFieldEditorParent() ) );
     
 
          // Temperature Scale Field Editor
